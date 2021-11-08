@@ -8,10 +8,7 @@ import com.tui.proof.common.util.DateUtil;
 import com.tui.proof.domain.api.AddressService;
 import com.tui.proof.domain.api.ClientService;
 import com.tui.proof.domain.api.OrderService;
-import com.tui.proof.dto.AddressDto;
-import com.tui.proof.dto.ClientDto;
-import com.tui.proof.dto.OrderDto;
-import com.tui.proof.dto.RegisterOrderDto;
+import com.tui.proof.dto.*;
 import com.tui.proof.model.Address;
 import com.tui.proof.model.Client;
 import com.tui.proof.model.Order;
@@ -24,6 +21,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,6 +63,7 @@ class OrderServiceImpl implements OrderService {
         return orderRepository.findByNumber(number);
     }
 
+    @Override
     public Order updateOrder(OrderDto orderDto) {
         log.debug("Updating order with data: {}", orderDto);
         Order order = orderRepository.findByNumber(orderDto.getNumber())
@@ -79,6 +78,11 @@ class OrderServiceImpl implements OrderService {
                 BigDecimal.valueOf(orderDto.getPilotes())));
 
         return orderRepository.save(order);
+    }
+
+    @Override
+    public List<Order> searchOrders(OrderSearchingCriteria criteria) {
+        return orderRepository.searchOrders(criteria);
     }
 
     @Autowired

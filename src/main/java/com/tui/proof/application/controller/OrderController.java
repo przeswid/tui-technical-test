@@ -3,6 +3,7 @@ package com.tui.proof.application.controller;
 import com.tui.proof.common.exception.ResourceNotFoundException;
 import com.tui.proof.domain.api.OrderService;
 import com.tui.proof.dto.OrderDto;
+import com.tui.proof.dto.OrderSearchingCriteria;
 import com.tui.proof.dto.RegisterOrderDto;
 import com.tui.proof.model.Order;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/order")
@@ -37,8 +40,8 @@ public class OrderController {
             description = "Register new order",
             tags = {"order"},
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Order registered successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input"),
+                    @ApiResponse(responseCode = "201", description = "Order registered successfully. Link to registered order in Location header"),
+                    @ApiResponse(responseCode = "400", description = "Invalid input order data"),
             }
     )
     @PostMapping(value = "/v1_0",
@@ -62,7 +65,7 @@ public class OrderController {
             description = "Get existing order",
             tags = {"order"},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Order founded"),
+                    @ApiResponse(responseCode = "200", description = "Order data in response body"),
                     @ApiResponse(responseCode = "404", description = "Order not found"),
             }
     )
@@ -84,7 +87,7 @@ public class OrderController {
             tags = {"order"},
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order updated successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input"),
+                    @ApiResponse(responseCode = "400", description = "Invalid order input"),
                     @ApiResponse(responseCode = "404", description = "Order not found"),
                     @ApiResponse(responseCode = "422", description = "Cannot update order that was sent to processing")
             }
@@ -100,6 +103,40 @@ public class OrderController {
         Order createdOrder = orderService.updateOrder(orderDto);
 
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Search for existing orders",
+            description = "Searching is based on client criterias",
+            tags = {"order"},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Searching finished successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid input"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access"),
+                    @ApiResponse(responseCode = "403", description = "Access forbidden")
+            }
+    )
+    @GetMapping(value = "/v1_0/search")
+    public ResponseEntity<List<OrderDto>> searchOrders(
+            @Parameter(description = "Order's client email")
+            @RequestParam(value = "email", required = false)
+                    String email,
+            @Parameter(description = "Order's client first name")
+            @RequestParam(value = "firstName", required = false)
+                    String firstName,
+            @Parameter(description = "Order's client last name")
+            @RequestParam(value = "lastName", required = false)
+                    String lastName) {
+
+        List<Order> orders = orderService.searchOrders(OrderSearchingCriteria
+                .builder()
+                .clientEmail(email)
+                .clientFirstName(firstName)
+                .clientLastName(lastName)
+                .build());
+
+        return ResponseEntity.ok(orders.stream()
+                .map(o -> new ModelMapper().map(o, OrderDto.class))
+                .collect(Collectors.toList()));
     }
 
 }
