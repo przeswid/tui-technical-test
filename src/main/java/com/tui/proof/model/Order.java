@@ -1,5 +1,6 @@
 package com.tui.proof.model;
 
+import com.tui.proof.common.OrderState;
 import com.tui.proof.common.validator.PilotesQuantityInRange;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,13 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_order_address_fk", columnList = "address_id")
         }
 )
+@NamedEntityGraph(
+        name = "order_with_client_and_address_graph",
+        attributeNodes = {
+                @NamedAttributeNode("client"),
+                @NamedAttributeNode("address")
+        }
+)
 public class Order {
     @Id
     @GeneratedValue(
@@ -36,8 +44,11 @@ public class Order {
     @Size(min = 2, max = 256, message = "Length of number should be in range: from 2 to 256")
     private String number;
 
+    @Column(name = "state")
+    @NotNull(message = "Order state cannot be null")
+    private OrderState state;
+
     @Column(name = "pilotes")
-    @PilotesQuantityInRange
     private Integer pilotes;
 
     @Column(name = "order_total")

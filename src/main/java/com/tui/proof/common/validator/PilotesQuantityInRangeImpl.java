@@ -1,5 +1,6 @@
 package com.tui.proof.common.validator;
 
+import com.tui.proof.common.i18n.Messages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -8,9 +9,7 @@ import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static com.tui.proof.common.validator.PilotesQuantityInRange.VALIDATION_MESSAGE;
-
-class PilotesQuantityInRangeImpl implements ConstraintValidator<PilotesQuantityInRange, Integer> {
+public class PilotesQuantityInRangeImpl implements ConstraintValidator<PilotesQuantityInRange, Integer> {
 
     private final Integer[] availablePilotesQuantity;
 
@@ -34,7 +33,7 @@ class PilotesQuantityInRangeImpl implements ConstraintValidator<PilotesQuantityI
     }
 
     private String getErrorMessage() {
-        return VALIDATION_MESSAGE.replaceFirst("\\{\\}",
+        return Messages.WRONG_QUANTITY_OF_PILOTES_MSG.replaceFirst("\\{\\}",
                 Arrays.stream(availablePilotesQuantity).map(Object::toString).collect(Collectors.joining(",")));
     }
 
