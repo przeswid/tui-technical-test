@@ -1,5 +1,13 @@
-## Summary
+## REQUIREMENTS
+- Java 11
+- Maven
 
-TUI DX Backend technical Test v2
+## BUILD&TEST
+mvn clean install
 
-The base project uses lombok, so you have to install it. You can use the following guide https://www.baeldung.com/lombok-ide
+## RUN
+Entrypoint: PilotesApplication 
+TODO: Docker in the near future
+
+## PILOTES REST API
+Swagger API available after starting application at: http://localhost:8090/swagger-ui/#/

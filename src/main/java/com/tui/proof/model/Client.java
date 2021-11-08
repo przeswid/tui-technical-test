@@ -1,6 +1,5 @@
 package com.tui.proof.model;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 

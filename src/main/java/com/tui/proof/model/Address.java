@@ -1,9 +1,7 @@
 package com.tui.proof.model;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import nonapi.io.github.classgraph.json.Id;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
