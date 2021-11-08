@@ -79,5 +79,27 @@ public class OrderController {
         return ResponseEntity.ok(new ModelMapper().map(order, OrderDto.class));
     }
 
+    @Operation(summary = "Change existing order",
+            description = "Change existing order",
+            tags = {"order"},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order updated successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid input"),
+                    @ApiResponse(responseCode = "404", description = "Order not found"),
+                    @ApiResponse(responseCode = "422", description = "Cannot update order that was sent to processing")
+            }
+    )
+    @PutMapping(value = "/v1_0",
+            consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Void> updateOrder(
+            @Parameter(description = "Data required to update an order. Cannot be null",
+                    required = true,
+                    schema = @Schema(implementation = OrderDto.class))
+            @Valid
+            @RequestBody OrderDto orderDto) {
+        Order createdOrder = orderService.updateOrder(orderDto);
+
+        return ResponseEntity.ok().build();
+    }
 
 }
