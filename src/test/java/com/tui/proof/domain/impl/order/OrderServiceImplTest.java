@@ -1,5 +1,6 @@
 package com.tui.proof.domain.impl.order;
 
+import com.tui.proof.common.OrderState;
 import com.tui.proof.common.exception.OrderModificationDeniedException;
 import com.tui.proof.common.exception.OrderProcessingException;
 import com.tui.proof.domain.api.AddressService;
@@ -17,9 +18,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,6 +43,9 @@ public class OrderServiceImplTest {
     @Mock
     OrderRepository orderRepository;
 
+    @Mock
+    ApplicationEventPublisher eventPublisher;
+
     @Captor
     ArgumentCaptor<Order> orderCaptor;
 
@@ -52,6 +59,7 @@ public class OrderServiceImplTest {
         orderServiceImpl = new OrderServiceImpl(clientService, addressService, orderRepository);
         orderServiceImpl.setPiloteUnitPrice(DEFAULT_PLIOTES_UNIT_PRICE);
         orderServiceImpl.setSendToProcessingAfterMinutes(DEFAULT_SEND_TO_PROCESSING_AFTER_MINUTES);
+        orderServiceImpl.setApplicationEventPublisher(eventPublisher);
     }
 
     @Nested
@@ -143,7 +151,7 @@ public class OrderServiceImplTest {
             doReturn(clientEmail).when(clientEntity).getEmail();
             doReturn(clientEntity).when(orderEntity).getClient();
 
-            doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumber(anyString());
+            doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumberForUpdate(anyString());
 
             OrderDto orderDto = new OrderDto();
             orderDto.setNumber("order_number");
@@ -167,7 +175,7 @@ public class OrderServiceImplTest {
             LocalDateTime orderRegisterDate = LocalDateTime.now().minusMinutes(DEFAULT_SEND_TO_PROCESSING_AFTER_MINUTES + 1);
             doReturn(orderRegisterDate).when(orderEntity).getCreatedOn();
 
-            doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumber(anyString());
+            doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumberForUpdate(anyString());
 
             OrderDto orderDto = new OrderDto();
             orderDto.setNumber("order_number");
@@ -194,7 +202,7 @@ public class OrderServiceImplTest {
             doReturn(existingClientEmail).when(clientEntity).getEmail();
             doReturn(clientEntity).when(orderEntity).getClient();
 
-            doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumber(anyString());
+            doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumberForUpdate(anyString());
 
             OrderDto orderDto = new OrderDto();
             orderDto.setNumber("order_number");
@@ -208,4 +216,45 @@ public class OrderServiceImplTest {
         }
     }
 
+    @Nested
+    class SendOrdersToProcessingTests {
+
+        @Test
+        void shouldNotSendAnyEvent_whenThereIsNoOrdersToProcess() {
+            // Given
+            doReturn(Collections.emptyList()).when(orderRepository).findByStateAndCreatedOnLessThan(any(), any());
+
+            // When
+            orderServiceImpl.sendOrdersToProcessing();
+
+            // Then
+            Mockito.verify(eventPublisher, times(0)).publishEvent(any());
+        }
+
+        @Test
+        void shouldSendOneEvent_whenThereIsOneOrderToProcess() {
+            // Given
+            doReturn(List.of(mock(Order.class))).when(orderRepository).findByStateAndCreatedOnLessThan(any(), any());
+
+            // When
+            orderServiceImpl.sendOrdersToProcessing();
+
+            // Then
+            Mockito.verify(eventPublisher, times(1)).publishEvent(any());
+        }
+
+        @Test
+        void shouldChangeOrderState_whenThereIsOrderToProcess() {
+            // Given
+            Order order = mock(Order.class);
+            doReturn(List.of(order)).when(orderRepository).findByStateAndCreatedOnLessThan(any(), any());
+
+            // When
+            orderServiceImpl.sendOrdersToProcessing();
+
+            // Then
+            Mockito.verify(order).setState(OrderState.SENT_TO_PROCESSING);
+        }
+
+    }
 }

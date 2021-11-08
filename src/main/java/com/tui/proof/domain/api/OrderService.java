@@ -17,4 +17,5 @@ public interface OrderService {
 
     List<Order> searchOrders(OrderSearchingCriteria criteria);
 
+    void sendOrdersToProcessing();
 }

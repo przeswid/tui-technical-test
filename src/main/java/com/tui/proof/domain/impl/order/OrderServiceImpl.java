@@ -1,6 +1,7 @@
 package com.tui.proof.domain.impl.order;
 
 import com.tui.proof.common.OrderState;
+import com.tui.proof.common.events.OrderReadyToProcessingEvent;
 import com.tui.proof.common.exception.OrderModificationDeniedException;
 import com.tui.proof.common.exception.OrderProcessingException;
 import com.tui.proof.common.exception.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -35,6 +37,8 @@ class OrderServiceImpl implements OrderService {
     private final AddressService addressService;
 
     private final OrderRepository orderRepository;
+
+    private ApplicationEventPublisher applicationEventPublisher;
 
     private BigDecimal piloteUnitPrice;
 
@@ -66,7 +70,7 @@ class OrderServiceImpl implements OrderService {
     @Override
     public Order updateOrder(OrderDto orderDto) {
         log.debug("Updating order with data: {}", orderDto);
-        Order order = orderRepository.findByNumber(orderDto.getNumber())
+        Order order = orderRepository.findByNumberForUpdate(orderDto.getNumber())
                 .orElseThrow(() -> new ResourceNotFoundException(orderDto.getNumber()));
 
         validateOrderOnUpdate(order, orderDto);
@@ -85,6 +89,23 @@ class OrderServiceImpl implements OrderService {
         return orderRepository.searchOrders(criteria);
     }
 
+    /**
+     *  Method that could be invoked in parallel.
+     *  Method uses PESIMISTIC_LOCK to lock all the orders that will be sent
+     *  to processing. The same type of lock is used in method updateOrder.
+     *  This solution should prevent from race condition that can occur when the
+     *  order X is updating and sending to processing in the same time.
+     */
+    public void sendOrdersToProcessing() {
+        List<Order> orders = orderRepository.findByStateAndCreatedOnLessThan(
+                OrderState.NEW, DateUtil.now().minusMinutes(sendToProcessingAfterMinutes));
+
+        for (Order order : orders) {
+            order.setState(OrderState.SENT_TO_PROCESSING);
+            sendOrderProcessingEvent(order);
+        }
+    }
+
     @Autowired
     public void setPiloteUnitPrice(@Value("${pilotes.configuration.unitPrice}") BigDecimal piloteUnitPrice) {
         this.piloteUnitPrice = piloteUnitPrice;
@@ -93,6 +114,11 @@ class OrderServiceImpl implements OrderService {
     @Autowired
     public void setSendToProcessingAfterMinutes(@Value("${pilotes.configuration.sendToProcessingAfterMinutes}") Integer sendToProcessingAfterMinutes) {
         this.sendToProcessingAfterMinutes = sendToProcessingAfterMinutes;
+    }
+
+    @Autowired
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     private Client createClientIfDoesntExist(ClientDto clientDto) {
@@ -143,5 +169,15 @@ class OrderServiceImpl implements OrderService {
 
             throw new OrderProcessingException("Cannot change order's client");
         }
+    }
+
+    private void sendOrderProcessingEvent(Order order) {
+        if (applicationEventPublisher == null) {
+            log.warn("No publisher for events 'OrderReadyToProcessingEvent'");
+            return;
+        }
+
+        applicationEventPublisher.publishEvent(
+                new OrderReadyToProcessingEvent(this, order.getNumber(), order.getPilotes()));
     }
 }

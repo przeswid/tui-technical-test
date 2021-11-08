@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
 @Table(name = "tb_order",
         indexes = {
                 @Index(name = "idx_order_client_fk", columnList = "client_id"),
-                @Index(name = "idx_order_address_fk", columnList = "address_id")
+                @Index(name = "idx_order_address_fk", columnList = "address_id"),
+                @Index(name = "idx_order_number", columnList = "number", unique = true),
+                @Index(name = "idx_order_state", columnList = "state")
         }
 )
 @NamedEntityGraph(
