@@ -46,7 +46,7 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(OrderModificationDeniedException exc) {
         log.error("Order processing exception occurred", exc);
         return createErrorResponse(exc.getProcessingExceptionMessage());

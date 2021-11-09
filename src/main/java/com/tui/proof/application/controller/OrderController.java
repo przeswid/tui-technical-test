@@ -89,7 +89,7 @@ public class OrderController {
                     @ApiResponse(responseCode = "200", description = "Order updated successfully"),
                     @ApiResponse(responseCode = "400", description = "Invalid order input"),
                     @ApiResponse(responseCode = "404", description = "Order not found"),
-                    @ApiResponse(responseCode = "422", description = "Cannot update order that was sent to processing")
+                    @ApiResponse(responseCode = "409", description = "Cannot update order that was sent to processing")
             }
     )
     @PutMapping(value = "/v1_0",
