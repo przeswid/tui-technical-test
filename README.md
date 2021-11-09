@@ -3,6 +3,10 @@
 - Maven
 - Docker [optional]
 
+## CONFIGURATION
+- Initially you can choose between 5,10 and 15 pilotes but feel free to change this configuration in application.properties file (property: pilotes.configuration.availableQuantities)
+- Initially the unit price on one pilote is 1.30 Euro but it can be changed in application.properties (property: pilotes.configuration.unitPrice)
+
 ## BUILD&TEST
 mvn clean install
 

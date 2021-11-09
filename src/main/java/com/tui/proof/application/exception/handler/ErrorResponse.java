@@ -1,6 +1,5 @@
 package com.tui.proof.application.exception.handler;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -9,7 +8,7 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public class ErrorResponse {
+class ErrorResponse {
 
     private final String message;
 

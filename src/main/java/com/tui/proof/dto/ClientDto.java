@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Schema(description = "Client's data")
@@ -23,6 +24,7 @@ public class ClientDto {
 
     @Schema(description = "Client's phone number", example = "+48123123123", required = true)
     @NotNull(message = "Telephone number cannot be null")
+    @Pattern(regexp = "^[0-9\\-+ ]{5,15}$")
     private String telephone;
 
     @Schema(description = "Client's e-mail", example = "john.smith@domain.com", required = true)

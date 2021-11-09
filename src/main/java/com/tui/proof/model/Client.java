@@ -43,7 +43,7 @@ public class Client {
 
     @Column(name = "telephone", length = 64)
     @NotNull(message = "Telephone number cannot be null")
-    @Pattern(regexp = "^[0-9\\-+]{5,15}$")
+    @Pattern(regexp = "^[0-9\\-+ ]{5,15}$")
     private String telephone;
 
     @Column(name = "email", length = 256)

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class OrderReadyToProcessingEventHandler implements ApplicationListener<OrderReadyToProcessingEvent> {
+class OrderReadyToProcessingEventHandler implements ApplicationListener<OrderReadyToProcessingEvent> {
     @Override
     public void onApplicationEvent(OrderReadyToProcessingEvent event) {
         log.info("Please send this message to Miguel's notification channel: [pilotes quantity: {}, order number: {}",

@@ -21,7 +21,7 @@ class OrderSchedulingService {
         this.orderService = orderService;
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 30000)
     public void setOrdersAsPreparedToCooking() {
         log.debug("Order Scheduling Cron - start");
         orderService.sendOrdersToProcessing();

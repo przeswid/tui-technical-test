@@ -1,7 +1,5 @@
 package com.tui.proof.common.validator;
 
-
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

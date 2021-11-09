@@ -7,7 +7,6 @@ import com.tui.proof.common.exception.OrderProcessingException;
 import com.tui.proof.domain.api.AddressService;
 import com.tui.proof.domain.api.ClientService;
 import com.tui.proof.dto.AddressDto;
-import com.tui.proof.dto.ClientDto;
 import com.tui.proof.dto.OrderDto;
 import com.tui.proof.dto.RegisterOrderDto;
 import com.tui.proof.model.Address;
@@ -29,8 +28,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

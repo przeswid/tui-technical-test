@@ -11,5 +11,5 @@ public final class Messages {
 
     public static final String RESOURCE_NOT_FOUNG_MSG = "Resource not found";
 
-    public static String WRONG_QUANTITY_OF_PILOTES_MSG = "Wrong quantity of pilotes. Available quantities are: {}";
+    public static final String WRONG_QUANTITY_OF_PILOTES_MSG = "Wrong quantity of pilotes. Available quantities are: {}";
 }

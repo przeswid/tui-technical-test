@@ -1,7 +1,6 @@
 package com.tui.proof.model;
 
 import com.tui.proof.common.OrderState;
-import com.tui.proof.common.validator.PilotesQuantityInRange;
 import lombok.Getter;
 import lombok.Setter;
 

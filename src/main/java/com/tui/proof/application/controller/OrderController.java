@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/order")
 @Validated
 @Tag(name = "order", description = "Order API")
-public class OrderController {
+class OrderController {
 
     private final OrderService orderService;
 

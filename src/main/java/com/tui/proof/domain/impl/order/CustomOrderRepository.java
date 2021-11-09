@@ -5,6 +5,6 @@ import com.tui.proof.model.Order;
 
 import java.util.List;
 
-public interface CustomOrderRepository {
+interface CustomOrderRepository {
     List<Order> searchOrders(OrderSearchingCriteria criteria);
 }
