@@ -1,5 +1,6 @@
 package com.tui.proof.domain.impl.order;
 
+import com.tui.proof.OrderDtoFactory;
 import com.tui.proof.common.OrderState;
 import com.tui.proof.common.exception.OrderModificationDeniedException;
 import com.tui.proof.common.exception.OrderProcessingException;
@@ -28,6 +29,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -67,15 +69,9 @@ public class OrderServiceImplTest {
         @Test
         void shouldCallRepositorySave_whenCreatingOrder() {
             // Given
+            RegisterOrderDto orderDto = OrderDtoFactory.createExampleRegisterOrder();
             doReturn(Optional.of(mock(Client.class))).when(clientService).getClient(anyString());
-            doReturn(Optional.of(mock(Address.class))).when(addressService).getAddress(Mockito.any(AddressDto.class));
-
-            RegisterOrderDto orderDto = new RegisterOrderDto();
-            orderDto.setPilotes(1);
-            ClientDto clientDto = new ClientDto();
-            clientDto.setEmail("");
-            orderDto.setClient(clientDto);
-            orderDto.setAddress(new AddressDto());
+            doReturn(Optional.of(mock(Address.class))).when(addressService).getAddress(any(AddressDto.class));
 
             // When
             orderServiceImpl.createOrder(orderDto);
@@ -88,27 +84,21 @@ public class OrderServiceImplTest {
         void shouldSaveOrderWithGivenClient_whenCreatingOrder() {
             // Given
             String clientEmail = "client@gmail.com";
+            RegisterOrderDto orderDto = OrderDtoFactory.createExampleRegisterOrder();
+            orderDto.getClient().setEmail(clientEmail);
 
             Client client = mock(Client.class);
             doReturn(clientEmail).when(client).getEmail();
 
             doReturn(Optional.of(client)).when(clientService).getClient(anyString());
-            doReturn(Optional.of(mock(Address.class))).when(addressService).getAddress(Mockito.any(AddressDto.class));
-
-            RegisterOrderDto orderDto = new RegisterOrderDto();
-            orderDto.setPilotes(1);
-            ClientDto clientDto = new ClientDto();
-            clientDto.setEmail(clientEmail);
-
-            orderDto.setClient(clientDto);
-            orderDto.setAddress(new AddressDto());
+            doReturn(Optional.of(mock(Address.class))).when(addressService).getAddress(any(AddressDto.class));
 
             // When
             orderServiceImpl.createOrder(orderDto);
-            Mockito.verify(orderRepository).save(orderCaptor.capture());
-            Order savedOrder = orderCaptor.getValue();
 
             // Then
+            Mockito.verify(orderRepository).save(orderCaptor.capture());
+            Order savedOrder = orderCaptor.getValue();
             assertEquals(savedOrder.getClient().getEmail(), orderDto.getClient().getEmail());
         }
 
@@ -116,24 +106,21 @@ public class OrderServiceImplTest {
         void shouldSaveOrderWithPrice10_whenCreatingOrderWith5PilotesAndUnitPrice2() {
             // Given
             Integer pilotesQuantity = 5;
+            BigDecimal unitPrice = BigDecimal.valueOf(2.0);
+            orderServiceImpl.setPiloteUnitPrice(unitPrice);
+            RegisterOrderDto orderDto = OrderDtoFactory.createExampleRegisterOrder();
+            orderDto.setPilotes(pilotesQuantity);
 
             doReturn(Optional.of(mock(Client.class))).when(clientService).getClient(anyString());
-            doReturn(Optional.of(mock(Address.class))).when(addressService).getAddress(Mockito.any(AddressDto.class));
-
-            RegisterOrderDto orderDto = new RegisterOrderDto();
-            ClientDto clientDto = new ClientDto();
-            clientDto.setEmail("");
-            orderDto.setClient(clientDto);
-            orderDto.setAddress(new AddressDto());
-            orderDto.setPilotes(pilotesQuantity);
+            doReturn(Optional.of(mock(Address.class))).when(addressService).getAddress(any(AddressDto.class));
 
             // When
             orderServiceImpl.createOrder(orderDto);
-            Mockito.verify(orderRepository).save(orderCaptor.capture());
-            Order savedOrder = orderCaptor.getValue();
 
             // Then
-            assertEquals(savedOrder.getOrderTotal(), BigDecimal.valueOf(10.0));
+            Mockito.verify(orderRepository).save(orderCaptor.capture());
+            Order savedOrder = orderCaptor.getValue();
+            assertEquals(savedOrder.getOrderTotal(), unitPrice.multiply(BigDecimal.valueOf(pilotesQuantity)));
         }
     }
 
@@ -143,6 +130,8 @@ public class OrderServiceImplTest {
         void shouldSaveOrderWithGivenClient_whenUpdatingOrder() {
             // Given
             String clientEmail = "client@email.com";
+            OrderDto orderDto = OrderDtoFactory.createExampleOrder();
+            orderDto.getClient().setEmail(clientEmail);
 
             Order orderEntity = mock(Order.class);
             LocalDateTime orderRegisterDate = LocalDateTime.now().minusMinutes(DEFAULT_SEND_TO_PROCESSING_AFTER_MINUTES - 1);
@@ -152,14 +141,6 @@ public class OrderServiceImplTest {
             doReturn(clientEntity).when(orderEntity).getClient();
 
             doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumberForUpdate(anyString());
-
-            OrderDto orderDto = new OrderDto();
-            orderDto.setNumber("order_number");
-            orderDto.setPilotes(5);
-            ClientDto clientDto = new ClientDto();
-            clientDto.setEmail(clientEmail);
-            orderDto.setClient(clientDto);
-            orderDto.setAddress(new AddressDto());
 
             // When
             orderServiceImpl.updateOrder(orderDto);
@@ -171,19 +152,13 @@ public class OrderServiceImplTest {
         @Test
         void shouldThrowOrderModificationDeniedException_whenModificationTimeExceeded() {
             // Given
+            OrderDto orderDto = OrderDtoFactory.createExampleOrder();
+
             Order orderEntity = mock(Order.class);
             LocalDateTime orderRegisterDate = LocalDateTime.now().minusMinutes(DEFAULT_SEND_TO_PROCESSING_AFTER_MINUTES + 1);
             doReturn(orderRegisterDate).when(orderEntity).getCreatedOn();
 
             doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumberForUpdate(anyString());
-
-            OrderDto orderDto = new OrderDto();
-            orderDto.setNumber("order_number");
-            orderDto.setPilotes(5);
-            ClientDto clientDto = new ClientDto();
-            clientDto.setEmail("");
-            orderDto.setClient(clientDto);
-            orderDto.setAddress(new AddressDto());
 
             // When + Then
             assertThrows(OrderModificationDeniedException.class, () -> orderServiceImpl.updateOrder(orderDto));
@@ -195,6 +170,9 @@ public class OrderServiceImplTest {
             String existingClientEmail = "existing@addres.com";
             String newClientEmail = "new@addres.com";
 
+            OrderDto orderDto = OrderDtoFactory.createExampleOrder();
+            orderDto.getClient().setEmail(newClientEmail);
+
             Order orderEntity = mock(Order.class);
             LocalDateTime orderRegisterDate = LocalDateTime.now().minusMinutes(1);
             doReturn(orderRegisterDate).when(orderEntity).getCreatedOn();
@@ -203,13 +181,6 @@ public class OrderServiceImplTest {
             doReturn(clientEntity).when(orderEntity).getClient();
 
             doReturn(Optional.of(orderEntity)).when(orderRepository).findByNumberForUpdate(anyString());
-
-            OrderDto orderDto = new OrderDto();
-            orderDto.setNumber("order_number");
-            ClientDto clientDto = new ClientDto();
-            clientDto.setEmail(newClientEmail);
-            orderDto.setClient(clientDto);
-            orderDto.setAddress(new AddressDto());
 
             // When + Then
             assertThrows(OrderProcessingException.class, () -> orderServiceImpl.updateOrder(orderDto));

@@ -14,7 +14,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = OrderController.class)
-public class ControllersSecurityIntegrationTest {
+public class SearchOrdersSecurityIntegrationTest {
 
     @Autowired
     private MockMvc mvc;
@@ -24,16 +24,14 @@ public class ControllersSecurityIntegrationTest {
 
     @Test
     public void whenUnauthorizedSearchingOrders_thenHttpResponse401() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get("/order/v1_0/search")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mvc.perform(MockMvcRequestBuilders.get("/order/v1_0/search"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser("admin")
     public void whenAuthorizedSearchingOrders_thenHttpResponse200() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get("/order/v1_0/search")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mvc.perform(MockMvcRequestBuilders.get("/order/v1_0/search"))
                 .andExpect(status().isOk());
     }
 
